@@ -20,44 +20,55 @@ public class CaveGenerater : MonoBehaviour
     public int birthLimit;
 
     //Map Check
+    public bool isMapCheck;
     int[,] integerMap;
     int largestCave;
     List<int> caveList;
     public int cavePercentage;
-    int retryTimes = 0;
+    int retryTimes;
 
     //Generate Start & End Point
     Vector2 startPoint;
     Vector2 endPoint;
+    Vector2 startPoint2;
+    Vector2 endPoint2;
 
     //Map Generate
-    public Tile[] tile;
+    public Tile[] tile = new Tile[5];
     public Tilemap tilemap;
 
     // Start is called before the first frame update
     void Start()
-    {       
-        bool succefulGenerate = false;
-
+    {
+        GenerateCave();
+    }
+    public void GenerateCave()
+    {
+        bool successfulGenerate = false;
+        retryTimes = 0;
         do
         {
             map = new bool[width, height];
             retryTimes++;
             InitialiseMap();
-            
+
             CellularAutomata();
 
             if (CheckCaveSize())
-                succefulGenerate = true;
-            else if (retryTimes == 5)
-                Debug.LogWarning("Fail to generate, please check your variable setting and try again.");
+                successfulGenerate = true;
+            else
+                successfulGenerate = false;
 
-        } while (retryTimes < 5 && !succefulGenerate);
+        } while (retryTimes < 5 && !successfulGenerate);
 
-        if(succefulGenerate)
+        if (successfulGenerate)
         {
             StartEndGeneration();
             GenerateMap();
+        }
+        else
+        {
+            Debug.LogWarning("Fail to generate, please check your variable setting and try again.");
         }
     }
 
@@ -69,7 +80,7 @@ public class CaveGenerater : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 //based on the generateChance random spawn the cell
-                if(Random.Range(0,100) < generateChance)
+                if(Random.Range(0,100) < 100 - generateChance)
                     map[x,y] = true;
             }
         }
@@ -153,8 +164,9 @@ public class CaveGenerater : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                
-                if (map[x, y])
+                if (x == 0 || y == 0 || x == width - 1 || y == height - 1)
+                    integerMap[x, y] = 0;
+                else if (map[x, y])
                     integerMap[x, y] = 0; //0 is rock
                 else
                     integerMap[x, y] = 1; //1 is path
@@ -232,10 +244,22 @@ public class CaveGenerater : MonoBehaviour
                 largestCave = i;
         }
 
-        Debug.Log(caveList.Count);
+        if(isMapCheck)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (integerMap[x, y] != largestCave + 2 && integerMap[x, y] != 0)
+                    {
+                        integerMap[x, y] = 0;
+                    }
+                }
+            }
+        }
 
         //check the cave size is match we want ot not
-        if (((float)caveList[largestCave] / (width * height)) * 100 < cavePercentage)
+        if (caveList.Count == 0 || ((float)caveList[largestCave] / (width * height)) * 100 < cavePercentage)
             return false;
 
         return true;
@@ -243,7 +267,7 @@ public class CaveGenerater : MonoBehaviour
 
     void StartEndGeneration()
     {
-        Vector2 vStartPoint = new Vector2(0,0);
+        Vector2 vStartPoint = new Vector2(0, 0);
         Vector2 vEndPoint = new Vector2(0, 0);
         bool vStartFound = false;
         bool vEndFound = false;
@@ -282,11 +306,11 @@ public class CaveGenerater : MonoBehaviour
         bool hEndFound = false;
 
         //find the horizontal start point
-        for (int x = width - 1; x >= 0; x--)
+        for (int y = height - 1; y >= 0; y--)
         {
             if (hStartFound)
                 break;
-            for (int y = height - 1; y >= 0; y--)
+            for  (int x = width - 1; x >= 0; x--)
             {
                 if (integerMap[x, y] == largestCave + 2)
                 {
@@ -298,13 +322,13 @@ public class CaveGenerater : MonoBehaviour
         }
 
         //find the horizontal end point
-        for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++)
         {
             if (hEndFound)
                 break;
-            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++) 
             {
-                if (integerMap[x, y] == largestCave + 2)
+                if (integerMap[x, y] == largestCave + 2 && integerMap[x, y] != 0)
                 {
                     hEndPoint = new Vector2(x, y);
                     hEndFound = true;
@@ -316,52 +340,44 @@ public class CaveGenerater : MonoBehaviour
         float vLenght = Vector2.Distance(vStartPoint, vEndPoint);
         float hLenght = Vector2.Distance(hStartPoint, hEndPoint);
 
-        if(vLenght > hLenght)
-        {
-            startPoint = vStartPoint;
-            endPoint = vEndPoint;
-        }
-        else
-        {
-            startPoint = hStartPoint;
-            endPoint = hEndPoint;
-        }
+        //if(vLenght > hLenght)
+        //{
+        //    startPoint = vStartPoint;
+        //    endPoint = vEndPoint;
+        //}
+        //else
+        //{
+        //    startPoint = hStartPoint;
+        //    endPoint = hEndPoint;
+        //}
+        startPoint = vStartPoint;
+        endPoint = vEndPoint;
+        startPoint2 = hStartPoint;
+        endPoint2 = hEndPoint;
     }
 
     void GenerateMap()
     {
-        for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++)
         {
-            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
             {
                 if (integerMap[x, y] == 0)
-                    tilemap.SetTile(tilemap.WorldToCell(new Vector3(x, y, 0)), tile[0]);
+                {
+                    if (y > 0 && integerMap[x, y - 1] != 0)
+                    {
+                        tilemap.SetTile(tilemap.WorldToCell(new Vector3(x, y, 0)), tile[2]);
+                    }
+                    else
+                        tilemap.SetTile(tilemap.WorldToCell(new Vector3(x, y, 0)), tile[0]);
+                }   
                 else
                     tilemap.SetTile(tilemap.WorldToCell(new Vector3(x, y, 0)), tile[1]);
             }
         }
-    }
-
-    
-
-    public void CreateTextFile()
-    {
-        string txtDocumentName = Application.streamingAssetsPath + "Map" + ".txt";
-
-        //File.WriteAllText(txtDocumentName, "");
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                if(map[x, y])
-                    File.AppendAllText(txtDocumentName, "1 ");
-                else
-                    File.AppendAllText(txtDocumentName, "0 ");
-
-            }
-            File.AppendAllText(txtDocumentName, "\n");
-        }
-        File.AppendAllText(txtDocumentName, "\n\n");
+        //tilemap.SetTile(tilemap.WorldToCell(new Vector3(startPoint.x, startPoint.y, 0)), tile[3]);
+        //tilemap.SetTile(tilemap.WorldToCell(new Vector3(endPoint.x, endPoint.y, 0)), tile[4]);
+        tilemap.SetTile(tilemap.WorldToCell(new Vector3(startPoint2.x, startPoint2.y, 0)), tile[3]);
+        tilemap.SetTile(tilemap.WorldToCell(new Vector3(endPoint2.x, endPoint2.y, 0)), tile[4]);
     }
 }
