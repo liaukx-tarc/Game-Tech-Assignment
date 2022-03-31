@@ -64,16 +64,18 @@ public class CaveGeneraterEditor : Editor
         GUILayout.Space(8);
 
         //Flood Fill
-        isFloodFill = EditorGUILayout.Toggle("Floodfill Algorithm", isFloodFill);
+        EditorGUILayout.BeginHorizontal();
+        isFloodFill = EditorGUILayout.Toggle("Largest Cave Only", isFloodFill);
         if (isFloodFill)
         {
             generater.isMapCheck = true;
         }
         else
             generater.isMapCheck = false;
-
+        EditorGUILayout.EndHorizontal();
+        GUILayout.Space(8);
         //Cave Percentage
-        GUILayout.Label("The minimum % of largest cave over the map");
+        GUILayout.Label("The minimum size of largest cave over the map");
         EditorGUILayout.BeginHorizontal();
 
         GUILayout.Label("Percentage");
@@ -84,7 +86,7 @@ public class CaveGeneraterEditor : Editor
 
 
         //Tile
-        GUILayout.Label("The tile");
+        GUILayout.Label("Tiles");
         GUILayout.Label("Rock");
         generater.tile[0] = EditorGUILayout.ObjectField(generater.tile[0], typeof(Tile), true) as Tile;
         GUILayout.Space(3);
@@ -114,7 +116,7 @@ public class CaveGeneraterEditor : Editor
             generater.GenerateCave();
         }
 
-        if(GUILayout.Button("Reset"))
+        if(GUILayout.Button("Clear"))
         {
             generater.tilemap.ClearAllTiles();
         }

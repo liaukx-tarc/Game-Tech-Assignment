@@ -30,8 +30,6 @@ public class CaveGenerater : MonoBehaviour
     //Generate Start & End Point
     Vector2 startPoint;
     Vector2 endPoint;
-    Vector2 startPoint2;
-    Vector2 endPoint2;
 
     //Map Generate
     public Tile[] tile = new Tile[5];
@@ -279,10 +277,12 @@ public class CaveGenerater : MonoBehaviour
                 break;
             for (int y = 0; y < height; y++)
             {
-                if (integerMap[x, y] == largestCave + 2) 
+                if (integerMap[x, y] == largestCave + 2)
+                {
                     vStartPoint = new Vector2(x, y);
                     vStartFound = true;
-                break;
+                    break;
+                }
             }
         }
 
@@ -294,9 +294,11 @@ public class CaveGenerater : MonoBehaviour
             for (int y = height - 1; y >= 0; y--)
             {
                 if (integerMap[x, y] == largestCave + 2)
+                {
                     vEndPoint = new Vector2(x, y);
-                vEndFound = true;
-                break;
+                    vEndFound = true;
+                    break;
+                }  
             }
         }
 
@@ -328,7 +330,7 @@ public class CaveGenerater : MonoBehaviour
                 break;
             for (int x = 0; x < width; x++) 
             {
-                if (integerMap[x, y] == largestCave + 2 && integerMap[x, y] != 0)
+                if (integerMap[x, y] == largestCave + 2 )
                 {
                     hEndPoint = new Vector2(x, y);
                     hEndFound = true;
@@ -340,20 +342,16 @@ public class CaveGenerater : MonoBehaviour
         float vLenght = Vector2.Distance(vStartPoint, vEndPoint);
         float hLenght = Vector2.Distance(hStartPoint, hEndPoint);
 
-        //if(vLenght > hLenght)
-        //{
-        //    startPoint = vStartPoint;
-        //    endPoint = vEndPoint;
-        //}
-        //else
-        //{
-        //    startPoint = hStartPoint;
-        //    endPoint = hEndPoint;
-        //}
-        startPoint = vStartPoint;
-        endPoint = vEndPoint;
-        startPoint2 = hStartPoint;
-        endPoint2 = hEndPoint;
+        if (vLenght > hLenght)
+        {
+            startPoint = vStartPoint;
+            endPoint = vEndPoint;
+        }
+        else
+        {
+            startPoint = hStartPoint;
+            endPoint = hEndPoint;
+        }
     }
 
     void GenerateMap()
@@ -375,9 +373,7 @@ public class CaveGenerater : MonoBehaviour
                     tilemap.SetTile(tilemap.WorldToCell(new Vector3(x, y, 0)), tile[1]);
             }
         }
-        //tilemap.SetTile(tilemap.WorldToCell(new Vector3(startPoint.x, startPoint.y, 0)), tile[3]);
-        //tilemap.SetTile(tilemap.WorldToCell(new Vector3(endPoint.x, endPoint.y, 0)), tile[4]);
-        tilemap.SetTile(tilemap.WorldToCell(new Vector3(startPoint2.x, startPoint2.y, 0)), tile[3]);
-        tilemap.SetTile(tilemap.WorldToCell(new Vector3(endPoint2.x, endPoint2.y, 0)), tile[4]);
+        tilemap.SetTile(tilemap.WorldToCell(new Vector3(startPoint.x, startPoint.y, 0)), tile[3]);
+        tilemap.SetTile(tilemap.WorldToCell(new Vector3(endPoint.x, endPoint.y, 0)), tile[4]);
     }
 }
