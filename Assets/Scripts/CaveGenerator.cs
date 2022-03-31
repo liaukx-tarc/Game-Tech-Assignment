@@ -4,7 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class CaveGenerater : MonoBehaviour
+public class CaveGenerator : MonoBehaviour
 {
     //map
     bool[,] map;
@@ -28,20 +28,52 @@ public class CaveGenerater : MonoBehaviour
     int retryTimes;
 
     //Generate Start & End Point
-    Vector2 startPoint;
-    Vector2 endPoint;
+    public Vector2 startPoint;
+    public Vector2 endPoint;
 
     //Map Generate
     public Tile[] tile = new Tile[5];
-    public Tilemap tilemap;
+    public Tilemap pathMap;
+    public Tilemap wallMap;
+
+    //player
+    public GameObject player;
+
+    //Main Camera
+    public GameObject mainCamera;
+    Vector2 cameraPosition;
 
     // Start is called before the first frame update
     void Start()
     {
+        pathMap.ClearAllTiles();
+        wallMap.ClearAllTiles();
+        mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Max(height/ 2.0f, width/ 2.0f);
         GenerateCave();
+    }
+
+    private void Update()
+    {
+        if (Input.GetAxis("Mouse ScrollWheel") > 0f) // forward
+        {
+            mainCamera.GetComponent<Camera>().orthographicSize++;
+            mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Min(mainCamera.GetComponent<Camera>().orthographicSize, Mathf.Max(height / 2.0f, width / 2.0f));
+        }
+        else if (Input.GetAxis("Mouse ScrollWheel") < 0f) // backwards
+        {
+            mainCamera.GetComponent<Camera>().orthographicSize--;
+            mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Max(mainCamera.GetComponent<Camera>().orthographicSize, 0);
+        }
+        float horizontalInput = Input.GetAxisRaw("Horizontal");
+        float verticalInput = Input.GetAxisRaw("Vertical");
+        mainCamera.transform.position += (new Vector3(horizontalInput, verticalInput, 0) * 0.25f);
+        cameraPosition.x = Mathf.Clamp(mainCamera.transform.position.x, 0, width);
+        cameraPosition.y = Mathf.Clamp(mainCamera.transform.position.y, 0, height);
+        mainCamera.transform.position = new Vector3(cameraPosition.x, cameraPosition.y, -10);
     }
     public void GenerateCave()
     {
+        mainCamera.transform.position = new Vector3(width / 2.0f, height / 2.0f, - 10);
         bool successfulGenerate = false;
         retryTimes = 0;
         do
@@ -364,16 +396,24 @@ public class CaveGenerater : MonoBehaviour
                 {
                     if (y > 0 && integerMap[x, y - 1] != 0)
                     {
-                        tilemap.SetTile(tilemap.WorldToCell(new Vector3(x, y, 0)), tile[2]);
+                        wallMap.SetTile(wallMap.WorldToCell(new Vector3(x, y, 0)), tile[2]);
                     }
                     else
-                        tilemap.SetTile(tilemap.WorldToCell(new Vector3(x, y, 0)), tile[0]);
+                        wallMap.SetTile(wallMap.WorldToCell(new Vector3(x, y, 0)), tile[0]);
                 }   
                 else
-                    tilemap.SetTile(tilemap.WorldToCell(new Vector3(x, y, 0)), tile[1]);
+                    pathMap.SetTile(pathMap.WorldToCell(new Vector3(x, y, 0)), tile[1]);
             }
         }
-        tilemap.SetTile(tilemap.WorldToCell(new Vector3(startPoint.x, startPoint.y, 0)), tile[3]);
-        tilemap.SetTile(tilemap.WorldToCell(new Vector3(endPoint.x, endPoint.y, 0)), tile[4]);
+        pathMap.SetTile(pathMap.WorldToCell(new Vector3(startPoint.x, startPoint.y, 0)), tile[3]);
+        pathMap.SetTile(pathMap.WorldToCell(new Vector3(endPoint.x, endPoint.y, 0)), tile[4]);
+    }
+
+    public void CreatePlayer()
+    {
+        mainCamera.SetActive(false);
+        player.SetActive(true);
+        player.transform.position = new Vector3(startPoint.x + 0.5f, startPoint.y + 0.5f, 0);
+        player.GetComponent<PlayerController>().goal = new Vector3(endPoint.x, endPoint.y, 0);
     }
 }
