@@ -26,6 +26,7 @@ public class CaveGenerator : MonoBehaviour
     List<int> caveList;
     public int cavePercentage;
     int retryTimes;
+    bool successfulGenerate;
 
     //Generate Start & End Point
     public Vector2 startPoint;
@@ -43,13 +44,17 @@ public class CaveGenerator : MonoBehaviour
     public GameObject mainCamera;
     Vector2 cameraPosition;
 
+    //warning message
+    public GameObject warningText;
+
     // Start is called before the first frame update
     void Start()
     {
+        isMapCheck = false;
         pathMap.ClearAllTiles();
         wallMap.ClearAllTiles();
-        mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Max(height/ 2.0f, width/ 2.0f);
-        GenerateCave();
+        mainCamera.GetComponent<Camera>().orthographicSize = 25;
+        //GenerateCave();
     }
 
     private void Update()
@@ -73,8 +78,9 @@ public class CaveGenerator : MonoBehaviour
     }
     public void GenerateCave()
     {
+        Clear();
         mainCamera.transform.position = new Vector3(width / 2.0f, height / 2.0f, - 10);
-        bool successfulGenerate = false;
+        successfulGenerate = false;
         retryTimes = 0;
         do
         {
@@ -99,6 +105,7 @@ public class CaveGenerator : MonoBehaviour
         else
         {
             Debug.LogWarning("Fail to generate, please check your variable setting and try again.");
+            warningText.SetActive(true);
         }
     }
 
@@ -411,9 +418,68 @@ public class CaveGenerator : MonoBehaviour
 
     public void CreatePlayer()
     {
-        mainCamera.SetActive(false);
-        player.SetActive(true);
-        player.transform.position = new Vector3(startPoint.x + 0.5f, startPoint.y + 0.5f, 0);
-        player.GetComponent<PlayerController>().goal = new Vector3(endPoint.x, endPoint.y, 0);
+        if(successfulGenerate)
+        {
+            mainCamera.SetActive(false);
+            player.SetActive(true);
+            player.transform.position = new Vector3(startPoint.x + 0.5f, startPoint.y + 0.5f, 0);
+            player.GetComponent<PlayerController>().goal = new Vector3(endPoint.x, endPoint.y, 0);
+        }
     }
+
+    public void Clear()
+    {
+        warningText.SetActive(false);
+        pathMap.ClearAllTiles();
+        wallMap.ClearAllTiles();
+        mainCamera.SetActive(true);
+        player.SetActive(false);
+        successfulGenerate = false;
+    }
+
+    public void ToggleCheck(bool isCheck)
+    {
+        isMapCheck = isCheck;
+    }
+
+    public void SetWidth(string value)
+    {
+        width = int.Parse(value);
+    }
+
+    public void SetHeight(string value)
+    {
+        height = int.Parse(value);
+    }
+
+    public void SetGenerateChance(string value)
+    {
+        generateChance = int.Parse(value);
+    }
+
+    public void SetBirthLimit(string value)
+    {
+        birthLimit = int.Parse(value);
+    }
+
+    public void SetDeathLimit(string value)
+    {
+        deathLimit = int.Parse(value);
+    }
+
+    public void SetRepeatTimes(string value)
+    {
+        repeatTimes = int.Parse(value);
+    }
+
+    public void SetCavePercentage(string value)
+    {
+        cavePercentage = int.Parse(value);
+    }
+
+    public void QuitApplication()
+    {
+        Application.Quit();
+    }
+
 }

@@ -17,6 +17,10 @@ public class CaveGeneratorEditor : Editor
         generator.mainCamera = EditorGUILayout.ObjectField("Camera", generator.mainCamera, typeof(GameObject), true) as GameObject;
         GUILayout.Space(8);
 
+        //Warning Text
+        generator.warningText = EditorGUILayout.ObjectField("Warning Textbox", generator.warningText, typeof(GameObject), true) as GameObject;
+        GUILayout.Space(8);
+
         //Tilemap
         GUILayout.Label("The target tilemap");
         generator.pathMap = EditorGUILayout.ObjectField("Path",generator.pathMap, typeof(Tilemap), true) as Tilemap;
@@ -74,12 +78,7 @@ public class CaveGeneratorEditor : Editor
         //Flood Fill
         EditorGUILayout.BeginHorizontal();
         isFloodFill = EditorGUILayout.Toggle("Largest Cave Only", isFloodFill);
-        if (isFloodFill)
-        {
-            generator.isMapCheck = true;
-        }
-        else
-            generator.isMapCheck = false;
+        generator.ToggleCheck(isFloodFill);
         EditorGUILayout.EndHorizontal();
         GUILayout.Space(8);
         //Cave Percentage
@@ -120,19 +119,12 @@ public class CaveGeneratorEditor : Editor
 
         if (GUILayout.Button("Generate Map"))
         {
-            generator.wallMap.ClearAllTiles();
-            generator.pathMap.ClearAllTiles();
-            generator.mainCamera.SetActive(true);
-            generator.player.SetActive(false);
             generator.GenerateCave();
         }
 
         if(GUILayout.Button("Clear"))
         {
-            generator.wallMap.ClearAllTiles();
-            generator.pathMap.ClearAllTiles();
-            generator.mainCamera.SetActive(true);
-            generator.player.SetActive(false);
+            generator.Clear();
         }
         GUILayout.Space(8);
 
